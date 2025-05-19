@@ -1,0 +1,122 @@
+#power by fengmm521.taobao.com
+#wechat:woodmage
+import tDriver as t
+import time
+import uartUtil
+import eUtil
+import json
+
+#实始化一个点击器控制实例对象
+tobj = t.TouchObj()
+#pNumber按键按下,pNumber从1~16
+def touchPin(pNumber):
+    tobj.setPin(pNumber,False)
+    tobj.updateData()
+#pNumber按键抬起,pNumber从1~16
+def unTouchPin(pNumber):
+    tobj.setPin(pNumber,True)
+    tobj.updateData()
+#按下并抬起,即点按一次,pNumber从1~16
+def touchOncePin(pNumber):
+    #判断输入的点击头编号是否在1~16范围内,不在时程序直接返回,并报错
+    if pNumber < 1 or pNumber > 16: 
+        print('pin number erro:%d'%(pNumber)) 
+        return
+    touchPin(pNumber)   #对应点击头按下
+    time.sleep_ms(80)   #按下时间为80毫秒,这个时间可以根据需要修改,建议30~100之间
+    unTouchPin(pNumber) #对应点击头抬起
+    time.sleep_ms(80)   #抬起后再等80毫秒
+
+#使用四个点击头组成一列进行向上滑动操作, 从下向上依次是J1,J2,J3,J4的方式排列
+def moveUP():
+    tobj.move([1,2,3,4],5)  #按J1,J2,J3,J4顺序滑动,第二个参数5是滑动时间,单位是毫秒
+#向下滑动操作,正好和向上相反
+def moveDown():
+    tobj.move([4,3,2,1],5) #按J4,J3,J2,J1顺序滑动,第二个参数5是滑动时间,单位是毫秒
+
+#使用16位的按键状态数一次控制所有点击头状态
+def setAllPinStates(state):
+    tobj.set16Pins(state)
+    tobj.updateData()
+
+allUntouch = 0b1111111111111111    #所有点击头抬起状态
+danshu     = 0b1010101010101010    #单数按下状态
+shuanshu   = 0b0101010101010101    #双数按下状态
+
+isRUN = False                      #定义程序运行控制全局变量
+
+macMAP = None
+
+def uartCheck():
+    dat = uartUtil.reciveDat()
+    if dat: #接收到数据,dat将不为None
+        print('recive uart data:%s'%(dat.decode())) #decode是把字节流数据转成字符串格式
+        #下边可以根接接收到的字符串数据编写对应的点击控制逻辑,我这里就不编写细节了
+        dat = dat.decode().strip() #strip()是去掉字符串两边的空格
+        #1,1
+        #1,2
+        #前边是设备编号，后边是点击头编号
+        cmds = dat.split(',')
+        if len(cmds) > 1:
+            if eUtil.sendMsg(macMAP[cmds[0]],cmds[1],True):
+                print('ok')
+            else:
+                print('erro')
+        else:
+            print(len(dat),dat)
+            if dat == '1':
+                touchOncePin(1)
+            elif dat == '2':
+                touchOncePin(2)
+            elif dat == '3':
+                touchOncePin(3)
+            elif dat == '4':
+                touchOncePin(4)
+            elif dat == '5':
+                touchOncePin(5)
+            elif dat == '6':
+                touchOncePin(6)
+            elif dat == '7':
+                touchOncePin(7)
+            elif dat == '8':
+                touchOncePin(8)
+            elif dat == '9':
+                touchOncePin(9)
+            elif dat == 'a':
+                touchOncePin(10)
+            elif dat == 'b':
+                touchOncePin(11)
+            elif dat == 'c':
+                touchOncePin(12)
+            elif dat == 'd':
+                touchOncePin(13)
+            elif dat == 'e':
+                touchOncePin(14)
+            elif dat == 'f':
+                touchOncePin(15)
+            elif dat == 'g':
+                touchOncePin(16)
+
+def initMacAddrs():
+    global macMAP
+    f = open('macs.json')
+    macMAP = json.load(f)
+    f.close()
+    print(macMAP)
+
+#主函数,点击器程序从这里开始运行
+def main():
+    global isRUN                     #引用全局变量isRUN
+    setAllPinStates(allUntouch)      #初始化所有点击头为抬起状态
+    initMacAddrs()
+    eUtil.init()
+    while True:
+        tkey = tobj.key.value()      #检测物理按键是否被按下,当按键按下时tkey为0,否则为1
+        if not tkey:
+            print(eUtil.thisMac)
+            time.sleep(1)            #按键被按下,按键消抖延时1秒
+        uartCheck()
+        time.sleep_ms(5)
+
+if __name__ == '__main__':  
+    main()
