@@ -6,6 +6,11 @@ import time
 #实始化一个点击器控制实例对象
 tobj = t.TouchObj()
 
+#生成随机整数
+def randint(min, max):
+    return t.randint(min, max)
+
+
 #pNumber按键按下,pNumber从1~16
 def touchPin(pNumber):
     tobj.setPin(pNumber,False)
