@@ -1,0 +1,21 @@
+1.以下为连接路由器的方法
+
+import network   			 		#加载网络管理库
+wlan = network.WLAN(network.STA_IF)    		#设置板子工作方式为连接路由器方式
+wlan.active(True)					#激活wifi工作模式
+wlan.connect('路由器ssid,不能有中文', '路由器密码') 		#使用路由器ssid和密码连接路由器,注意:只能连接2.4G的Wifi
+
+wlan.isconnected() 					#路由器是否连接
+
+wlan.ifconfig() 					#查看连上路由器后,路由器给分配的ip地址
+
+
+2.以下为开启webrepl工作方法
+
+webrepl开启后可以使用浏览器或者uPyLoader-win.exe通过网络上传python脚本远程工作
+
+import webrepl_setup   #安装webrepl
+
+然后会有提示是否启用时,输入E
+
+之后重启就会开启webrepl了

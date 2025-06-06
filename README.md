@@ -112,11 +112,51 @@ stop():
 #停止巴法云服务器,并断开连接
 ```
 
-目前这个板加了这三个功能,如果需要别的功能可以联系我
+### 其他功能库
+
+新功能也会不断增加,后期示例会大于三个,如果需要别的功能可以联系我,下边是示例程序,这些程序都在src路径下:
+
+#### 出厂默认程序:
+
+主要功能就是按一下按键会所有点击头走一遍跑马灯:
+
+https://gitee.com/woodcol/pytouch/blob/master/src/%E5%87%BA%E5%8E%82%E7%A8%8B%E5%BA%8F/main.py
+
+#### 跑密码程序:
+
+这个示例是,你可以设置从0000到9999的密码,也可以设置6位密码,代码可自行修改,使用密码字典等
+
+https://gitee.com/woodcol/pytouch/blob/master/src/%E8%B7%91%E5%AF%86%E7%A0%81%E7%A8%8B%E5%BA%8F/main.py
+
+#### 微信小程序远程控制:
+
+这个功能主要使用的是巴法云服务器,通过微信小程序发送指令控制板子,实现远程控制功能
+
+https://gitee.com/woodcol/pytouch/tree/master/src/%E5%B7%B4%E6%B3%95%E4%BA%91
+
+#### 按一下按键所有点一下:
+
+https://gitee.com/woodcol/pytouch/tree/master/src/%E6%8C%89%E4%B8%80%E4%B8%8B%E6%8C%89%E9%94%AE%E6%89%80%E6%9C%89%E7%82%B9%E4%B8%80%E4%B8%8B
+
+#### espnow主控板之间直接无线通信:
+
+这个示例,可以让你用一个主控板通过其他板子的mac硬件物理地址直接相互通信,来实现无线分布式点击
+
+https://gitee.com/woodcol/pytouch/tree/master/src/espnow_%E4%B8%BB%E6%8E%A7%E4%B9%8B%E9%97%B4%E9%80%9A%E4%BF%A1
+
+#### 自有服务器sockt远程控制:
+
+
+
+## 其他学习资源
 
 micropython相关教程:
 http://micropython.com.cn/en/latet/esp8266/quickref.html
 
+http://micropython.com.cn/en/latet/esp8266/tutorial/index.html
+
 
 我的网盘下载地址:
 链接: https://pan.baidu.com/s/1NR2oT3o-vGjov8Ztjhno4Q?pwd=1234 提取码: 1234
+
+

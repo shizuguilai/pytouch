@@ -1,0 +1,3 @@
+首先发送两次 Ctrl+C（ASCII 值为 0x03），这将中断当前执行的代码。这相当于在 REPL（交互式命令行环境）中按下 Ctrl+C。
+
+然后发送两次 Ctrl+D（ASCII 值为 0x04），这将引发一个软件复位。这相当于在 REPL 中按下 Ctrl+D 或在命令行中输入 import machine; machine.reset()。
