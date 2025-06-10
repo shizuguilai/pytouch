@@ -159,4 +159,8 @@ http://micropython.com.cn/en/latet/esp8266/tutorial/index.html
 我的网盘下载地址:
 链接: https://pan.baidu.com/s/1NR2oT3o-vGjov8Ztjhno4Q?pwd=1234 提取码: 1234
 
+其他arduino固件,因为有人抄袭,现在arduino固件已不再开源,但已经编译好的固件仍然可以使用,想要例用最早的arduino固件请移步下边链接:
+
+https://gitee.com/woodcol/wifi-16-head-clicker
+
 
