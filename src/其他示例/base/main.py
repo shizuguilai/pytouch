@@ -47,9 +47,10 @@ shuanshu   = 0b0101010101010101    #双数按下状态
 isRUN = False                      #定义程序运行控制全局变量
 
 def uartCheck():
-    dat = uartUtil.reciveDat() #True表示每次只接收一个字节数据,只要有数据就一直接收,默认是False,接收一行数据,只有以换行符结束才会返回
+    dat = uartUtil.reciveDat()
     if dat: #接收到数据,dat将不为None
         print('recive uart data:%s'%(dat.decode())) #decode是把字节流数据转成字符串格式
+        #下边可以根接接收到的字符串数据编写对应的点击控制逻辑,我这里就不编写细节了
         dat = dat.decode().strip() #strip()是去掉字符串两边的空格
         print(len(dat),dat)
         if dat == '1':
@@ -97,37 +98,7 @@ def main():
             time.sleep(1)            #按键被按下,按键消抖延时1秒
         if isRUN:
             touchOncePin(1)          #j1点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(2)          #j2点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(3)          #j3点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(4)          #j4点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(5)          #j5点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(6)          #j6点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(7)          #j7点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(8)          #j8点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(9)          #j9点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(10)         #j10点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(11)         #j11点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(12)         #j12点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(13)         #j13点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(14)         #j14点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(15)         #j15点击一次
-            time.sleep_ms(10)       #延时等待10毫秒,1000毫秒=1秒
-            touchOncePin(16)         #j16点击一次
-            isRUN = False            #停止,等待下一次按键按下启动
+            # isRUN = False            #停止,等待下一次按键按下启动
         uartCheck()                  #检查串口是否有数据输入,在这个函数中进行接收
 
 if __name__ == '__main__':  
