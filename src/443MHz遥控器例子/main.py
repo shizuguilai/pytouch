@@ -56,7 +56,11 @@ def checkRF():
     dat = rfUtil.rfRecive()
     if dat:
         print(dat) #[1705, 827, 1],说明:[两次按键间隔,遥控器地址,按键编号,1~18]
-        ktmp = RFKVDict[dat[2]]
+        try:
+            ktmp = RFKVDict[dat[2]]
+        except:
+            print('get data erro')
+            return
         if ktmp == 17:
             setAllPinStates(0xFFFF) #所有点击头抬起,或者继电器动作
             for i in range(16):
@@ -72,18 +76,19 @@ def checkRF():
             else:
                 tSTATE[ktmp-1] = 0
                 unTouchPin(ktmp)
-        rfUtil.next()
 
 #主函数,点击器程序从这里开始运行
 def main():
     global isRUN                     #引用全局变量isRUN
-    setAllPinStates(allUntouch)      #初始化所有点击头为抬起状态
+    rfUtil.setDelayKey(350)          #设置遥控器按键防抖时间,单位毫秒
+    # setAllPinStates(allUntouch)      #初始化所有点击头为抬起状态,继电器为打开状态
+    setAllPinStates(0)                  #初始化所有点击头为按下状态,继电器为关闭状态
     while True:
         tkey = tobj.key.value()      #检测板子上按键是否被按下,当按键按下时tkey为0,否则为1
         if not tkey:
             isRUN = not isRUN        #程序运行状态取反
             if isRUN:
-                rfUtil.init()            #启动遥控器检测
+                rfUtil.start()            #启动遥控器检测
             else:
                 rfUtil.end()             #关闭遥控器
             print('isRUN:', isRUN)
