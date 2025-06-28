@@ -1,0 +1,2 @@
+巴法云控制点击的http接口
+https://apis.bemfa.com/va/sendMessage?uid=14712ccdbc88a59817d77c64ca2e4c33&topic=fengmm521&type=3&msg=1
