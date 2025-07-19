@@ -30,10 +30,10 @@ def touchOncePin(pNumber):
 
 #使用四个点击头组成一列进行向上滑动操作, 从下向上依次是J1,J2,J3,J4的方式排列
 def moveUP():
-    tobj.move([1,2,3,4],5)  #按J1,J2,J3,J4顺序滑动,第二个参数5是滑动时间,单位是毫秒
+    tobj.move([1,2,3,4])  #按J1,J2,J3,J4顺序滑动
 #向下滑动操作,正好和向上相反
 def moveDown():
-    tobj.move([4,3,2,1],5) #按J4,J3,J2,J1顺序滑动,第二个参数5是滑动时间,单位是毫秒
+    tobj.move([4,3,2,1]) #按J4,J3,J2,J1顺序滑动
 
 #使用16位的按键状态数一次控制所有点击头状态
 def setAllPinStates(state):
