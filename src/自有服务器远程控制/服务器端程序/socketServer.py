@@ -47,6 +47,9 @@ def getDataFromClient(s, dat):
     global PCSOCKET
     try:
         dat = dat.decode()
+        if dat.find('#') != -1:
+            print(dat)
+            s.send(dat.encode())
         datdic = json.loads(dat)
     except Exception as e:
         print('JSON decode error:', e)

@@ -126,15 +126,21 @@ def tD(tim):
     touchCMD(cmd['p'])
     tim.init(period=cmd['t1'],mode=Timer.ONE_SHOT ,callback=tU)
 
-def heartEnd(tim):
-    global serverMsgFunc
+isTimer = False
+
+def sendHeart(tim = None):
+    global serverMsgFunc,isTimer
     serverMsgFunc('1:w1#%s'%(config.cfgDict['id']))
+    isTimer = False
 
 def startHeart(msgFunc):
-    global serverMsgFunc
+    global serverMsgFunc,isTimer
+    if isTimer:
+        socketTimer.deinit()
     serverMsgFunc = msgFunc
-    serverMsgFunc('1:w1#%s'%(config.cfgDict['id']))
-    socketTimer.init(period=10000,mode=Timer.ONE_SHOT ,callback=heartEnd)
+    # serverMsgFunc('1:w1#%s'%(config.cfgDict['id']))
+    socketTimer.init(period=10000,mode=Timer.ONE_SHOT ,callback=sendHeart)
+    isTimer = True
 
 def runTouchCmd(cmd):
     global cmdDict

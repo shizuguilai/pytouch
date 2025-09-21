@@ -28,7 +28,7 @@ def onSocketRecive(socket,data):
             redata += data
         datstr = str(redata, 'utf8')
         print(datstr,len(datstr))
-        if datstr[0] != '{':
+        if datstr[0] != '{' and datstr.find('#') != -1:
             redata = None
             return
         datdic = json.loads(datstr)
@@ -50,7 +50,8 @@ def onSocketRecive(socket,data):
 def connectWifi():
     
     socketUtil.connect_wifi(config.cfgDict['ssid'],config.cfgDict['pwd'])
-    socketUtil.startClient(config.cfgDict['sAddr'],config.cfgDict['sPort'],onSocketRecive)
+    socketUtil.concectServer(config.cfgDict['sAddr'],config.cfgDict['sPort'])
+    socketUtil.reciveData(onSocketRecive)
 
 def uartCheck():
     dat = uartUtil.reciveDat(isRead=True) #True表示每次只接收一个字节数据,只要有数据就一直接收,默认是False,接收一行数据,只有以换行符结束才会返回
@@ -87,8 +88,13 @@ def main():
                 break
             else:
                 openLED()
+        heartstart = time.time()
         while True:
-            time.sleep(1)
+            time.sleep_ms(100)
+            socketUtil.reciveData(onSocketRecive)  #100ms检查一次是否有数据
+            if time.ticks_diff(time.time(), heartstart) > 10: #10s发送一次心跳包
+                heartstart = time.time()
+                touchTimer.sendHeart()   #发送心跳包
     else:
         closeLED()
         uartCheck() #检查串口是否有数据输入,在这个函数中进行接收
