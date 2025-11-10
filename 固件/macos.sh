@@ -7,6 +7,6 @@ echo $basepath
 cd $basepath
 
 esptool.py -b 115200  erase_flash
-esptool.py --chip esp8266 --baud 115200 write_flash --flash_size=detect 0 1_22_2-20251028.bin
+esptool.py --chip esp8266 --baud 115200 write_flash --flash_size=detect 0 1_22_2-20251110.bin
 
 esptool.py run

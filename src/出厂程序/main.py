@@ -46,46 +46,88 @@ shuanshu   = 0b0101010101010101    #双数按下状态
 
 isRUN = False                      #定义程序运行控制全局变量
 
+tMode1 = {'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'a':10,'b':11,'c':12,'d':13,'e':14,'f':15,'g':16}
+tDMode = {'0':[1,1],
+          '1':[1,0],
+          '2':[2,1],
+          '3':[2,0],
+          '4':[3,1],
+          '5':[3,0],
+          '6':[4,1],
+          '7':[4,0],
+          '8':[5,1],
+          '9':[5,0],
+          'a':[6,0],
+          'b':[6,1],
+          'c':[7,0],
+          'd':[7,1],
+          'e':[8,0],
+          'f':[8,1],
+          'g':[9,0],
+          'h':[9,1],
+          'i':[10,0],
+          'j':[10,1],
+          'k':[11,0],
+          'l':[11,1],
+          'm':[12,0],
+          'n':[12,1],
+          'o':[13,0],
+          'p':[13,1],
+          'q':[14,0],
+          'r':[14,1],
+          's':[15,0],
+          't':[15,1],
+          'u':[16,0],
+          'v':[16,1],
+          'x':[17,0],
+          'y':[17,1],}
+
+isSplitTouch = False            #定义按下和抬起是否分开控制,默认是分开控制:@模式,一起控制是:!模式
+
+isMutilTouch = False            #定义是否同时控制多个点击头,默认不是同时控制多个点击头,只有收到<>时才是
+
+mutildat = ''
+
+def touchCmd(cmd):
+    if isSplitTouch:
+        if tDMode[cmd][1] == 1:
+            touchPin(tDMode[cmd][0])
+        else:
+            unTouchPin(tDMode[cmd][0])
+    else:
+        if cmd > '0' and cmd < 'h':
+            print('touch pin:',tMode1[cmd])
+            touchOncePin(tMode1[cmd])
+
+def touchMutil(cmd):
+    #串口同时控制多个点击头
+    tmpd = int(cmd, 16)
+    setAllPinStates(tmpd)
+
 def uartCheck():
-    dat = uartUtil.reciveDat() #True表示每次只接收一个字节数据,只要有数据就一直接收,默认是False,接收一行数据,只有以换行符结束才会返回
+    global isSplitTouch,isMutilTouch,mutildat
+    dat = uartUtil.reciveDat(True) #True表示每次只接收一个字节数据,只要有数据就一直接收,默认是False,接收一行数据,只有以换行符结束才会返回
     if dat: #接收到数据,dat将不为None
         print('recive uart data:%s'%(dat.decode())) #decode是把字节流数据转成字符串格式
         dat = dat.decode().strip() #strip()是去掉字符串两边的空格
         print(len(dat),dat)
-        if dat == '1':
-            print('touch pin 1')
-            touchOncePin(1)
-        elif dat == '2':
-            touchOncePin(2)
-        elif dat == '3':
-            touchOncePin(3)
-        elif dat == '4':
-            touchOncePin(4)
-        elif dat == '5':
-            touchOncePin(5)
-        elif dat == '6':
-            touchOncePin(6)
-        elif dat == '7':
-            touchOncePin(7)
-        elif dat == '8':
-            touchOncePin(8)
-        elif dat == '9':
-            touchOncePin(9)
-        elif dat == 'a':
-            touchOncePin(10)
-        elif dat == 'b':
-            touchOncePin(11)
-        elif dat == 'c':
-            touchOncePin(12)
-        elif dat == 'd':
-            touchOncePin(13)
-        elif dat == 'e':
-            touchOncePin(14)
-        elif dat == 'f':
-            touchOncePin(15)
-        elif dat == 'g':
-            touchOncePin(16)
-
+        if dat == '@':
+            isSplitTouch = True
+        elif dat == '!':
+            isSplitTouch = False
+        elif dat == '<':
+            isMutilTouch = True
+        elif dat == '>':
+            isMutilTouch = False
+            if len(mutildat) == 4:
+                touchMutil(mutildat)
+            mutildat = ''
+        elif isMutilTouch and ((dat >= '0' and dat <= '9') or (dat >= 'a' and dat <= 'f') or (dat >= 'A' and dat <= 'F')):
+            mutildat += dat
+        elif (not isMutilTouch) and ((dat >= '0' and dat <= '9') or (dat >= 'a' and dat <= 'z') or (dat >= 'A' and dat <= 'Z')):
+            touchCmd(dat)
+        else:
+            print('error data:%s'%(dat))
 #主函数,点击器程序从这里开始运行
 def main():
     global isRUN                     #引用全局变量isRUN
