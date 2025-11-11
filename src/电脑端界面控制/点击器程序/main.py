@@ -29,11 +29,17 @@ def touchOncePin(pNumber):
     time.sleep_ms(80)   #抬起后再等80毫秒
 
 #使用四个点击头组成一列进行向上滑动操作, 从下向上依次是J1,J2,J3,J4的方式排列
-def moveUP():
-    tobj.move([1,2,3,4])  #按J1,J2,J3,J4顺序滑动
+def moveUP(plist = None):
+    if plist == None:
+        tobj.move([1,2,3,4])  #按J1,J2,J3,J4顺序滑动
+    else:
+        tobj.move(plist)  #按J1,J2,J3,J4顺序滑动
 #向下滑动操作,正好和向上相反
-def moveDown():
-    tobj.move([4,3,2,1]) #按J4,J3,J2,J1顺序滑动
+def moveDown(plist):
+    if plist == None:
+        tobj.move([4,3,2,1]) #按J4,J3,J2,J1顺序滑动
+    else:
+        tobj.move(plist)
 
 #使用16位的按键状态数一次控制所有点击头状态
 def setAllPinStates(state):
@@ -60,9 +66,41 @@ def uartCheck():
         if len(tmps) == 2:
             tmps[1] = tmps[1].strip()
             if tmps[0] == 'x':
-                moveUP()
+                if tmps[1].find(':') != -1:
+                    ps = tmps[1].split(':')
+                    outps = []
+                    for i,v in enumerate(ps):
+                        outps.append(int(v))
+                    moveDown(outps)
+                else:
+                    moveDown()
             elif tmps[0] == 'y':
-                moveDown()
+                if tmps[1].find(':') != -1:
+                    ps = tmps[1].split(':')
+                    outps = []
+                    for i,v in enumerate(ps):
+                        outps.append(int(v))
+                    moveUP(outps)
+                else:
+                    moveUP()
+            elif tmps[0] == 'l':
+                if tmps[1].find(':') != -1:
+                    ps = tmps[1].split(':')
+                    outps = []
+                    for i,v in enumerate(ps):
+                        outps.append(int(v))
+                    moveDown(outps)
+                else:
+                    moveDown()
+            elif tmps[0] == 'r':
+                if tmps[1].find(':') != -1:
+                    ps = tmps[1].split(':')
+                    outps = []
+                    for i,v in enumerate(ps):
+                        outps.append(int(v))
+                    moveUP(outps)
+                else:
+                    moveUP()
             elif tmps[1] == '1':
                 unTouchPin(int(tmps[0]))
             elif tmps[1] == '0':

@@ -3,6 +3,7 @@ from tkinter import ttk
 import serial
 import serial.tools.list_ports
 from datetime import datetime
+import json
 
 type2Pins = {1:['0','1'],2:['2','3'],3:['4','5'],4:['6','7'],5:['8','9'],6:['a','b'],7:['c','d'],8:['e','f'],9:['g','h'],10:['i','j'],11:['k','l'],12:['m','n'],13:['o','p'],14:['q','r'],15:['s','t'],16:['u','v']}
 
@@ -13,6 +14,19 @@ class ButtonGridApp:
         self.root.title("16按钮串口控制界面")
         self.root.geometry("600x550")  # 增加高度以容纳新按钮
         
+        self.moveDict = {}
+
+        self.upPort = 1
+        self.downPort = 1
+        self.leftPort = 1
+        self.rightPort = 1
+        self.upPins = '1,2,3,4'
+        self.downPins = '4,3,2,1'
+        self.leftPins = '13,14,15,16'
+        self.rightPins = '16,15,14,13'
+        self.initMoveDict()
+        
+
         # 串口相关变量
         self.serial_port = None
         self.serial_connected = False
@@ -131,7 +145,29 @@ class ButtonGridApp:
         
         # 初始化时刷新串口列表
         self.refresh_serial_ports()
-    
+    def array_to_string(self,arr):
+        """
+        将数组转换为逗号分隔的字符串
+        
+        参数:
+        arr -- 要转换的数组（列表）
+        
+        返回:
+        逗号分隔的字符串
+        """
+        return ':'.join(str(x) for x in arr)
+    def initMoveDict(self):
+        with open('move.json','r') as f:
+            self.moveDict = json.load(f)
+        self.upPort = self.moveDict['up'][0]
+        self.downPort = self.moveDict['down'][0]
+        self.leftPort = self.moveDict['left'][0]
+        self.rightPort = self.moveDict['right'][0]
+        self.upPins = self.array_to_string(self.moveDict['up'][1])
+        self.downPins = self.array_to_string(self.moveDict['down'][1])
+        self.leftPins = self.array_to_string(self.moveDict['left'][1])
+        self.rightPins = self.array_to_string(self.moveDict['right'][1])
+        print(self.moveDict)
     def refresh_serial_ports(self):
         """刷新可用的串口列表"""
         ports = serial.tools.list_ports.comports()
@@ -196,9 +232,9 @@ class ButtonGridApp:
             try:
                 # 根据命令发送不同的字符
                 if command == "上滑":
-                    data = "x,0\n"
+                    data = "x,"+ self.upPins + "\n"
                 elif command == "下滑":
-                    data = "y,0\n"
+                    data = "y,"+ self.downPins + "\n"
                 else:
                     return
                 self.serial_port.write(data.encode())
