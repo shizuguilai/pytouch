@@ -2,10 +2,10 @@ import socket
 import network
 import time
 import tDriver as t
-import socketUtil
+from machine import Timer
 # 设置Wi-Fi连接信息
-SSID = "CMCC-h3gp"
-PASSWORD = "pat5k9he"
+SSID = "2.4G"
+PASSWORD = "58888888"
 # VVG1,a12345678
 #实始化一个点击器控制实例对象
 tobj = t.TouchObj()
@@ -46,41 +46,84 @@ def setAllPinStates(state):
 
 # 连接Wi-Fi
 def connect_wifi():
-    socketUtil.connect_wifi(SSID,PASSWORD)
-    # wlan = network.WLAN(network.STA_IF)
-    # wlan.active(True)
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
     
-    # if not wlan.isconnected():
-    #     print('正在连接Wi-Fi...')
-    #     wlan.connect(SSID, PASSWORD)
+    if not wlan.isconnected():
+        print('正在连接Wi-Fi...')
+        wlan.connect(SSID, PASSWORD)
         
-    #     # 等待连接，最多10秒
-    #     timeout = 10
-    #     while not wlan.isconnected() and timeout > 0:
-    #         time.sleep(1)
-    #         timeout -= 1
-    #         print('.', end='')
+        # 等待连接，最多10秒
+        timeout = 10
+        while not wlan.isconnected() and timeout > 0:
+            time.sleep(1)
+            timeout -= 1
+            print('.', end='')
     
-    # if wlan.isconnected():
-    #     print('\nWi-Fi连接成功!')
-    #     print('网络配置:', wlan.ifconfig())
-    #     return wlan.ifconfig()
-    # else:
-    #     print('\nWi-Fi连接失败!')
-    #     return None
+    if wlan.isconnected():
+        print('\nWi-Fi连接成功!')
+        print('网络配置:', wlan.ifconfig())
+        return wlan.ifconfig()
+    else:
+        print('\nWi-Fi连接失败!')
+        return None
 
-def runTouch(msg):
-    try:
-        print(msg)
-        tmps = msg.split('-')
-        for i in range(int(tmps[1])):
-            touchOncePin(int(tmps[0]),int(tmps[2]))          #j1点击一次
+tim = Timer(-20)
+tims = []
+reicMSG = None
+touchs = []
 
-    except Exception as e:
-        print('msg erro')
+def initTimers():
+    for i in range(16):
+        tims.append(Timer(-(i+1)))
+
+STRT = 30000
+END = 45000
+
+tcount = {}
+def touch2times(p):
+    tims[p-1].deinit()
+    touchOncePin(p)
+    if p in tcount:
+        if tcount[p] > 0:
+            tcount[p] -= 1
+    else:
+        tcount[p] = 1
+    if tcount[p] > 0:
+        dt = randint(1000,2000)
+        tims[p-1].init(period=dt,mode=Timer.ONE_SHOT ,callback=lambda t: touch2times(p))
+        
+    
+def initDelay():
+    global touchs
+    touchs = []
+    for i in range(16):
+        dt = randint(STRT,END)
+        touchs.append(dt)
+        print(i+1,dt)
+
+def runTouch(timp):
+    for i in range(16):
+        touchs[i] = touchs[i] - 100
+        if touchs[i] <= 0:
+            touch2times(i+1)
+            touchs[i] = randint(STRT,END)
+            print(i+1,touchs[i])
+
+def startTimer():
+    print('start:',STRT,END)
+    initDelay()
+    tim.init(period=100,mode=Timer.PERIODIC ,callback=runTouch)
+def stopTimer():
+    print('end')
+    tim.deinit()
+    for i in range(16):
+        tims[i].deinit()
+    
 
 # 创建UDP服务器
 def udp_server():
+    global reicMSG,STRT,END
     # 获取IP地址
     network_info = connect_wifi()
     if not network_info:
@@ -102,15 +145,26 @@ def udp_server():
             data, addr = sock.recvfrom(1024)
             
             # 解码接收到的数据
-            received_message = data.decode('utf-8')
-            runTouch(received_message)
-            print(f'收到来自 {addr} 的消息: {received_message}')
+            reicMSG = data.decode('utf-8')
             
+            print(f'收到来自 {addr} 的消息: {reicMSG}')
             # 发送回复
-            response = f'已收到你的消息: {received_message}'
+            response = f'已收到你的消息: {reicMSG}'
             sock.sendto(response.encode('utf-8'), addr)
             print(f'已发送回复给 {addr}')
-            
+            setAllPinStates(0xFFFF)
+            if reicMSG == '1':
+                startTimer()
+            elif reicMSG == '0':
+                stopTimer()
+            elif reicMSG.find(':') != -1:
+                stopTimer()
+                dats = reicMSG.split(':')
+                STRT = int(dats[0])*1000
+                END = int(dats[1])*1000
+                startTimer()
+            else:
+                print(reicMSG)
     except KeyboardInterrupt:
         print('\n服务器关闭')
     except Exception as e:
@@ -118,6 +172,10 @@ def udp_server():
     finally:
         sock.close()
 
+def main():
+    initTimers()
+    udp_server()
+
 # 运行UDP服务器
 if __name__ == '__main__':
-    udp_server()
+    main()
