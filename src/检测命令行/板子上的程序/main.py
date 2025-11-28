@@ -3,10 +3,10 @@ import network
 import time
 import tDriver as t
 import machine
-
+from machine import Timer
 # 设置Wi-Fi连接信息
-SSID = "CMCC-h3gp"
-PASSWORD = "pat5k9he"
+SSID = "808-809-9G"
+PASSWORD = "88888888"
 # VVG1,a12345678
 #实始化一个点击器控制实例对象
 tobj = t.TouchObj()
@@ -67,21 +67,58 @@ def connect_wifi():
         return wlan.ifconfig()
     else:
         print('\nWi-Fi连接失败!')
-
         return None
 
 def runTouch(msg):
-    try:
-        print(msg)
-        tmps = msg.split('-')
-        for i in range(int(tmps[1])):
-            touchOncePin(int(tmps[0]),int(tmps[2]))          #j1点击一次
+    print(msg)
+    if msg == '0':
+        setAllPinStates(0)
+        for i in range(2):
+            setAllPinStates(0xfffE)
+            time.sleep_ms(500)
+            setAllPinStates(0)
+            time.sleep_ms(500)
+    elif msg == '1':
+        setAllPinStates(0xFFFF)
+        for i in range(5):
+            setAllPinStates(0)
+            time.sleep_ms(50)
+            setAllPinStates(0xffff)
+            time.sleep_ms(50)
+        for i in range(2):
+            setAllPinStates(0)
+            time.sleep_ms(100)
+            setAllPinStates(0xffff)
+            time.sleep_ms(100)
+    else:
+        print('msg erro:',msg)
 
-    except Exception as e:
-        print('msg erro')
+def onKey():
+    setAllPinStates(0xFFFF)
+    for i in range(5):
+        setAllPinStates(0)
+        time.sleep_ms(50)
+        setAllPinStates(0xffff)
+        time.sleep_ms(50)
+    for i in range(2):
+        setAllPinStates(0)
+        time.sleep_ms(100)
+        setAllPinStates(0xffff)
+        time.sleep_ms(100)
+
+def onTimerEnd(tim):
+    tkey = tobj.key.value()
+    if not tkey:
+        onKey()
+    tim.init(period=50,mode=Timer.ONE_SHOT ,callback=onTimerEnd)
+
+def startTimer():
+    ttmp = Timer(-1)   #新建一个虚拟定时器2
+    ttmp.init(period=1000,mode=Timer.ONE_SHOT ,callback=onTimerEnd)
 
 # 创建UDP服务器
 def udp_server():
+    startTimer()
     # 获取IP地址
     network_info = connect_wifi()
     if not network_info:
