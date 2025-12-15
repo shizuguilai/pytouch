@@ -4,7 +4,6 @@ from machine import ADC, Pin
 import tDriver as t
 import time
 
-
 # 初始化ADC（ESP8266只有一个ADC引脚，连接到TOUT引脚）
 adc = ADC(0)  # 创建ADC对象，参数0表示ADC引脚
 
