@@ -77,7 +77,6 @@ def setADCData():
         try:
             adcConfig = int(mutildat.strip())
             print('adc config is:',adcConfig)
-            return
         except Exception:
             adcConfig = 300
             print('set adc config fomart error')
@@ -95,12 +94,12 @@ def getADCData():
         adcConfig = 300
         print('not config.txt file,set default:300')
 def uartCheck():
-    global isShowADC
+    global isShowADC,isSetData,mutildat
     dat = uartUtil.reciveDat(True) #True表示每次只接收一个字节数据,只要有数据就一直接收,默认是False,接收一行数据,只有以换行符结束才会返回
     if dat: #接收到数据,dat将不为None
-        print('recive uart data:%s'%(dat.decode())) #decode是把字节流数据转成字符串格式
+        # print('recive uart data:%s'%(dat.decode())) #decode是把字节流数据转成字符串格式
         dat = dat.decode().strip() #strip()是去掉字符串两边的空格
-        print(len(dat),dat)
+        # print(len(dat),dat)
         if dat == '[':
             isSetData = True
         elif dat == ']':
@@ -109,9 +108,11 @@ def uartCheck():
         elif isSetData and (dat >= '0' and dat <= '9'):
             mutildat += dat
         elif dat == '0':
+            print(dat)
             isShowADC = False
         elif dat == '1':
             isShowADC = True
+            print(dat)
         else:
             print('error data:%s'%(dat))
 isRUN = False                      #定义程序运行控制全局变量
