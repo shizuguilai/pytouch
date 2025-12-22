@@ -65,7 +65,7 @@ def xiabian(dtu = 800,dtd = 50):
 isSetData = False #是否多触点操作
 mutildat = ''
 
-adcConfig = 300
+adcConfig = 500
 
 isShowADC = True
 
