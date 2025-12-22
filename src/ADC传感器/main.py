@@ -42,21 +42,21 @@ def moveDown():
 
 
 allUntouch = 0b1111111111111111    #所有点击头抬起状态
-danshu     = 0b1010101010101010    #单数按下状态
-shuanshu   = 0b0101010101010101    #双数按下状态
+danshu     = 0b1111111111111101    #单数按下状态
+shuanshu   = 0b1111111111111110    #双数按下状态
 
 #使用16位的按键状态数一次控制所有点击头状态
 def setAllPinStates(state):
     tobj.set16Pins(state)
     tobj.updateData()
 
-def touchDanShu(dtu = 30,dtd = 50):
+def sahngbian(dtu = 5,dtd = 5):
     setAllPinStates(danshu)
     time.sleep_ms(dtd)
     setAllPinStates(allUntouch)
     time.sleep_ms(dtu)
 
-def touchShuangShu(dtu = 30,dtd = 50):
+def xiabian(dtu = 800,dtd = 50):
     setAllPinStates(shuanshu)
     time.sleep_ms(dtd)
     setAllPinStates(allUntouch)
@@ -140,9 +140,9 @@ def main():
             time.sleep(1)            #按键被按下,按键消抖延时1秒
         if isRUN:
             if checkADC():               #程序运行时检测ADC值,界面出现时,ADC值小于300
-                touchDanShu()
+                sahngbian()
             else:
-                touchShuangShu()         #程序未运行时,ADC值大于300
+                xiabian()         #程序未运行时,ADC值大于300
         else:
             time.sleep_ms(100)       #程序未运行时延时100毫秒
             uartCheck()                  #检查串口是否有数据输入,在这个函数中进行接收
