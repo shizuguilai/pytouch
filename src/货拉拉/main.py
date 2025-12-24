@@ -168,6 +168,7 @@ def main():
     global isRUN                     #引用全局变量isRUN
     setAllPinStates(allUntouch)      #初始化所有点击头为抬起状态
     getADCData()
+    isHardOK = checkHard()
     while True:
         tkey = tobj.key.value()      #检测物理按键是否被按下,当按键按下时tkey为0,否则为1
         if not tkey:
@@ -175,7 +176,7 @@ def main():
             print('isRUN',isRUN)
             time.sleep(1)            #按键被按下,按键消抖延时1秒
         if isRUN:
-            if not checkHard():
+            if not isHardOK:
                 print('非法设备')
                 isRUN = False
                 time.sleep(3)
