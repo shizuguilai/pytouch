@@ -72,16 +72,16 @@ def connectWifi():
     sendMsgToServer('ping')
 
 tMode1 = {'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'a':10,'b':11,'c':12,'d':13,'e':14,'f':15,'g':16}
-tDMode = {'0':[1,1],
-          '1':[1,0],
-          '2':[2,1],
-          '3':[2,0],
-          '4':[3,1],
-          '5':[3,0],
-          '6':[4,1],
-          '7':[4,0],
-          '8':[5,1],
-          '9':[5,0],
+tDMode = {'0':[1,0],
+          '1':[1,1],
+          '2':[2,0],
+          '3':[2,1],
+          '4':[3,0],
+          '5':[3,1],
+          '6':[4,0],
+          '7':[4,1],
+          '8':[5,0],
+          '9':[5,1],
           'a':[6,0],
           'b':[6,1],
           'c':[7,0],
@@ -103,10 +103,7 @@ tDMode = {'0':[1,1],
           's':[15,0],
           't':[15,1],
           'u':[16,0],
-          'v':[16,1],
-          'x':[17,0],
-          'y':[17,1],}
-
+          'v':[16,1]}
 #单字节指令处理
 def runCmd(dat):
     global uartMODE
@@ -114,12 +111,16 @@ def runCmd(dat):
         uartMODE = dat
     elif dat == '$':
         machine.reset()
+    elif dat == 'x':
+        setAllPinStates(0)
+    elif dat == 'y':
+        setAllPinStates(0xffff)
     else:
         if uartMODE == '!':
             touchOncePin(tMode1[dat])
         elif uartMODE == '@':
             tmp = tDMode[dat]
-            if tmp[1]:
+            if tmp[1] == 0:
                 touchPin(tmp[0])
             else:
                 unTouchPin(tmp[0])

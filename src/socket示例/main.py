@@ -111,9 +111,7 @@ tDMode = {'0':[1,0],
           's':[15,0],
           't':[15,1],
           'u':[16,0],
-          'v':[16,1],
-          'x':[17,0],
-          'y':[17,1],}
+          'v':[16,1]}
 
 def cleanConfig():
     f = open('config.txt','w')
@@ -156,12 +154,16 @@ def runCmd(dat):
     elif dat == '$':
         cleanConfig()
         machine.reset()
+    elif dat == 'x':
+        setAllPinStates(0)
+    elif dat == 'y':
+        setAllPinStates(0xffff)
     else:
         if uartMODE == '!':
             touchOncePin(tMode1[dat])
         elif uartMODE == '@':
             tmp = tDMode[dat]
-            if tmp[1]:
+            if tmp[1] == 0:
                 touchPin(tmp[0])
             else:
                 unTouchPin(tmp[0])
