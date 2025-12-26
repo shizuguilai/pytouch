@@ -79,7 +79,16 @@ reciveBuff = ''
 
 
 def onSocketRecive(socket,data):
-    runCmd(data)
+    global delayTouchTime
+    print('socket recive:',data)
+    if len(data) == 1:
+        runCmd(data)
+    elif len(data) == 6 and data[0] == '<' and data[-1] == '>':
+        tmp = '0x' + data[1:-1]
+        integer = int(tmp, 16)
+        setAllPinStates(integer)
+    elif data[0] == '[' and data[-1] == ']':
+        delayTouchTime = int(data[1:-1])
 
 def onClientConnected(client):
     print('client connected',client)
