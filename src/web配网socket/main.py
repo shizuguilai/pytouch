@@ -1,12 +1,35 @@
 #power by fengmm521.taobao.com
 #wechat:woodmage
+import machine
+import ujson
+#文件是否存在
+def isExists(pth):
+    try:
+        f = open(pth,'rb')
+        f.close()
+        return True
+    except Exception:
+        return False
+SSID = None
+PASSWORD = None
+if not isExists('wifi.json'):
+    import webconfig
+    webconfig.WebConfig().run() #开始web配网,配网成功后自动保存wifi.json,然后重新启动
+else:
+    with open('wifi.json', 'r') as f:
+        config = ujson.load(f)
+        SSID = config.get('ssid')
+        PASSWORD = config.get('password')
+        print('wifi config:',SSID,PASSWORD)
 import tDriver as t
 import time
 import uartUtil
-import machine
+import os
 
 #实始化一个点击器控制实例对象
 tobj = t.TouchObj()
+
+delayTouchTime = 50
 #生成随机整数
 def randint(min, max):
     return t.randint(min, max)
@@ -25,9 +48,9 @@ def touchOncePin(pNumber):
         print('pin number erro:%d'%(pNumber)) 
         return
     touchPin(pNumber)   #对应点击头按下
-    time.sleep_ms(80)   #按下时间为80毫秒,这个时间可以根据需要修改,建议30~100之间
+    time.sleep_ms(delayTouchTime)   #按下时间为80毫秒,这个时间可以根据需要修改,建议30~100之间
     unTouchPin(pNumber) #对应点击头抬起
-    time.sleep_ms(80)   #抬起后再等80毫秒
+    time.sleep_ms(delayTouchTime)   #抬起后再等80毫秒
 
 #使用四个点击头组成一列进行向上滑动操作, 从下向上依次是J1,J2,J3,J4的方式排列
 def moveUP():
@@ -52,11 +75,8 @@ isRUN = False                      #定义程序运行控制全局变量
 uartMODE = '@' #串口模式,默认是@模式
 reciveMode = 0 #接收模式,0:接收单字节指令,1:配网接收数据,{wifi名,wifi密码}通过socket控制点击器,2:同时控制所有点击头状态数据,3:巴法云设置,[wifi名,wifi密码,巴法云UID]
 reciveBuff = ''
-SSID = None
-PASSWORD = None
-BUID = None
-serverIP = None
-serverPORT = 0
+
+
 
 def onSocketRecive(socket,data):
     runCmd(data)
@@ -66,19 +86,9 @@ def onClientConnected(client):
 
 def connectWifi():
     import socketUtil
-    global serverIP,serverPORT
-    tmps = reciveBuff.split(',')
-    ssid = tmps[0]
-    password = tmps[1]
-    if len(tmps) == 4: #使用客户端模式
-        serverIP = tmps[2]
-        serverPORT = int(tmps[3])
-        socketUtil.connect_wifi(ssid,password)
-        socketUtil.startClient(serverIP,serverPORT,onSocketRecive)
-    else:
-        socketUtil.startServer(onSocketRecive,onClientConnected,23)
-        socketUtil.connect_wifi(ssid,password)
-
+    socketUtil.connect_wifi(SSID,PASSWORD)
+    socketUtil.startServer(onSocketRecive,onClientConnected,23)
+        
 tMode1 = {'1':1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'a':10,'b':11,'c':12,'d':13,'e':14,'f':15,'g':16}
 tDMode = {'0':[1,0],
           '1':[1,1],
@@ -111,57 +121,29 @@ tDMode = {'0':[1,0],
           's':[15,0],
           't':[15,1],
           'u':[16,0],
-          'v':[16,1],
-          'x':[17,0],
-          'y':[17,1],}
+          'v':[16,1]}
 
-def cleanConfig():
-    f = open('config.txt','w')
-    f.write('')
-    f.close()
-
-def saveConfig(ssid,password,uid = '',sSer = '',sPort= ''):
-    out = ssid + ',' + password + ',' + uid + ',' + sSer + ',' + str(sPort)+ ',' + uartMODE
-    f = open('config.txt','w')
-    f.write(out)
-    f.close()
-
-def readConfig():
-    global SSID,PASSWORD,BUID,serverIP,serverPORT,uartMODE
-    try:
-        f = open('config.txt','r')
-        s = f.read()
-        f.close()
-        tmps = s.split(',')
-        if tmps[0] and tmps[0] != '':
-            SSID = tmps[0]
-        if tmps[1] and tmps[1] != '':
-            PASSWORD = tmps[1]
-        if tmps[2] and tmps[2] != '':
-            BUID = tmps[2]
-        if tmps[3] and tmps[3] != '':
-            serverIP = tmps[3]
-        if tmps[4] and tmps[4] != '':
-            serverPORT = int(tmps[4])
-        if tmps[5] and tmps[5] != '':
-            uartMODE = tmps[5]
-    except:
-        print('默认出厂设置')
-
+def cleanWifiConfig():
+    os.remove('wifi.json')
+    time.sleep_(100)
+    machine.reset()
 #单字节指令处理
 def runCmd(dat):
     global uartMODE
     if dat == '@' or dat == '!':
         uartMODE = dat
-    elif dat == '$':
-        cleanConfig()
-        machine.reset()
+    elif dat == '$':  #清除wifi配置,恢复初始设置
+        cleanWifiConfig()
+    elif dat == 'x':  #重启
+        setAllPinStates(0)
+    elif dat == 'y':  #关闭所有灯
+        setAllPinStates(allUntouch)
     else:
         if uartMODE == '!':
             touchOncePin(tMode1[dat])
         elif uartMODE == '@':
             tmp = tDMode[dat]
-            if tmp[1]:
+            if tmp[1] == 0:
                 touchPin(tmp[0])
             else:
                 unTouchPin(tmp[0])
@@ -170,7 +152,6 @@ def touch16Pins():
     integer = int(reciveBuff, 16)
     setAllPinStates(integer)
 
-
 #判断dat是否为整数字符串
 def is_int(dat):
     try:
@@ -178,79 +159,26 @@ def is_int(dat):
         return True
     except:
         return False
-
-#慢速双击p号按键后点亮屏幕的操作
-def doubleTouch(p):
-    touchOncePin(p)
-    time.sleep(0.3)
-    touchOncePin(p)
-#快速双击
-def doubleTouchFast(p):
-    touchOncePin(p)
-    touchOncePin(p)
-
-#长按屏幕,默认是3秒
-def longTouch(p,t = 3000):
-    touchPin(p)
-    time.sleep_ms(t)
-    unTouchPin(p)
-
-
-#巴法云回调函数,收到巴法云发来的消息后会被调用
-def bfCallback(dat):
-    print(dat)
-    intdat = -1
-    if is_int(dat): #收到按钮1~按钮16的点击指令,对应点击头点击一次
-        intdat = int(dat)
-    if dat == 'h':                      #所有点击头击一次
-        setAllPinStates(0)              #16个点击头都按下
-        time.sleep_ms(80)               #按下时间80毫秒
-        setAllPinStates(allUntouch)     #16个点击头都抬起
-    elif intdat >=1 and intdat <= 16:   #对次编号的点击头点击一次
-        touchOncePin(intdat)
-    elif dat == 'a':           #向上滑动,j1,j2,j3,j4
-        moveUP()
-    elif dat == 'b':           #向下滑动,j1,j2,j3,j4
-        moveDown()
-    elif dat == 'c':           #快速双击
-        doubleTouchFast(4)      #快速双击J4
-    elif dat == 'd':           #长按
-        longTouch(4)            #快速双击J4
-    elif dat == 'e':           #慢速双击,用来点亮屏幕
-        doubleTouch(4)         #慢速双击J4
-    else:
-        print('unknow command:%s'%(dat)) #你们发的命令,自行解析吧
-def runBafaMode():
-    import BFUtil
-    tmps = reciveBuff.split(',')
-    ssid  = tmps[0]
-    password = tmps[1]
-    uid = tmps[2]
-    BFUtil.connect_wifi(ssid,password)        #连接wifi,wifi只能是纯2.4G的,
-    BFUtil.start(uid,bfCallback)              #设置巴法云的uid,并设置接收消息回调函数,同时启动巴法云
+def setDelayTime():
+    global delayTouchTime
+    delayTouchTime = int(reciveBuff)
 
 def reciveOneByte(dat):
     global reciveMode,reciveBuff
     try:
         dat = dat.decode()
         print(dat)
-        if dat == '{':  #表示使用串口配网的开始标识
-            reciveMode = 1
-        elif dat == '}': #配网wifi参数设置完成
-            reciveMode = 0
-            connectWifi()
-            reciveBuff = ''
-        elif dat == '<': #表示使用串口同时控制所有点击头状态数据开始标识
+        if dat == '<': #表示使用串口同时控制所有点击头状态数据开始标识
             reciveMode = 2
         elif dat == '>': #表示使用串口同时控制所有点击头状态数据结束标识
             reciveMode = 0
             touch16Pins()
             reciveBuff = ''
-        elif dat == '[]': #表示使用串口巴法云设置开始标识
+        elif dat == '[': #表示设置!模式的延时
             reciveMode = 3
         elif dat == ']': #表示使用串口巴法云设置结束标识
             reciveMode = 0
-            runBafaMode()
+            setDelayTime()
             reciveBuff = ''
         elif reciveMode != 0: #接收wifi参数
             reciveBuff += dat
@@ -275,17 +203,8 @@ def main():
     setAllPinStates(allUntouch)      #初始化所有点击头为抬起状态
     tkey = tobj.key.value()      #检测物理按键是否被按下,开机时按键被按下,恢复出厂设置
     if not tkey:
-        cleanConfig()           #恢复出厂设置
+        cleanWifiConfig()           #恢复出厂设置
     else:
-        readConfig()            #读取配置文件
-    if BUID and BUID != '' and SSID and PASSWORD:
-        reciveBuff = SSID + ',' + PASSWORD + ',' + BUID
-        runBafaMode() #进入巴法云模式
-    elif SSID and PASSWORD and serverIP and serverIP != '' and serverPORT:#使用客户端模式
-        reciveBuff = SSID + ',' + PASSWORD + ',' + serverIP + ',' + serverPORT
-        connectWifi() #进入客户端模式
-    elif SSID != '' and PASSWORD != '': #使用socket服务器模式
-        reciveBuff = SSID + ',' + PASSWORD 
         connectWifi() #进入客户端模式
     while True:
         tkey = tobj.key.value()      #检测物理按键是否被按下,当按键按下时tkey为0,否则为1
