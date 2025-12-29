@@ -2,6 +2,8 @@
 #wechat:woodmage
 import machine
 import ujson
+import os
+import socketUtil
 #文件是否存在
 def isExists(pth):
     try:
@@ -124,18 +126,11 @@ class LibTime:
 
 ## 清除wifi配置,下次上电后,需要重新配置wifi
 def cleanWifiConfig():
-    import network,os
     os.remove('wifi.json')
-    time.sleep_(10)
-    wlan = network.WLAN(network.STA_IF)
-    wlan.active(True)  # 必须先激活
-    wlan.disconnect()  # 断开当前连接
-    wlan.active(False)  # 先关闭接口
-    time.sleep_(100)
-    machine.reset()     # 重启设备
+    time.sleep_ms(100)
+    machine.reset()
 
 def test():
-    import socketUtil
     socketUtil.connect_wifi(SSID,PASSWORD)  #让板子连接wifi
     tobj = LibTime()
     tobj.syncRemote() #同步网络时间,同时打印北京时间

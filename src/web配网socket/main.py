@@ -24,6 +24,7 @@ else:
 import tDriver as t
 import time
 import uartUtil
+import socketUtil
 import os
 
 #实始化一个点击器控制实例对象
@@ -80,7 +81,7 @@ reciveBuff = ''
 
 def onSocketRecive(socket,data):
     global delayTouchTime
-    print('socket recive:',data)
+    print('socket recive:',data,len(data))
     if len(data) == 1:
         runCmd(data)
     elif len(data) == 6 and data[0] == '<' and data[-1] == '>':
@@ -94,7 +95,7 @@ def onClientConnected(client):
     print('client connected',client)
 
 def connectWifi():
-    import socketUtil
+    
     socketUtil.connect_wifi(SSID,PASSWORD)
     socketUtil.startServer(onSocketRecive,onClientConnected,23)
         
@@ -133,14 +134,8 @@ tDMode = {'0':[1,0],
           'v':[16,1]}
 
 def cleanWifiConfig():
-    import network
     os.remove('wifi.json')
-    time.sleep_(10)
-    wlan = network.WLAN(network.STA_IF)
-    wlan.active(True)  # 必须先激活
-    wlan.disconnect()  # 断开当前连接
-    wlan.active(False)  # 先关闭接口
-    time.sleep_(100)
+    time.sleep_ms(100)
     machine.reset()
 #单字节指令处理
 def runCmd(dat):
