@@ -122,6 +122,18 @@ class LibTime:
     def sleep_ms(self, ms):
         time.sleep_ms(ms)
 
+## 清除wifi配置,下次上电后,需要重新配置wifi
+def cleanWifiConfig():
+    import network,os
+    os.remove('wifi.json')
+    time.sleep_(10)
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)  # 必须先激活
+    wlan.disconnect()  # 断开当前连接
+    wlan.active(False)  # 先关闭接口
+    time.sleep_(100)
+    machine.reset()     # 重启设备
+
 def test():
     import socketUtil
     socketUtil.connect_wifi(SSID,PASSWORD)  #让板子连接wifi

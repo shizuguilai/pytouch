@@ -6,3 +6,5 @@ pytouch.zip
 固件/自用的上传工具.bat
 src/自有服务器远程控制/服务器端程序/__pycache__/socketServer.cpython-38.pyc
 *.pyc
+python安装包/串口调试助手/
+python安装包/CH341SER驱动程序/

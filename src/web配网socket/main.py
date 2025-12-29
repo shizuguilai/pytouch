@@ -133,7 +133,13 @@ tDMode = {'0':[1,0],
           'v':[16,1]}
 
 def cleanWifiConfig():
+    import network
     os.remove('wifi.json')
+    time.sleep_(10)
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)  # 必须先激活
+    wlan.disconnect()  # 断开当前连接
+    wlan.active(False)  # 先关闭接口
     time.sleep_(100)
     machine.reset()
 #单字节指令处理
