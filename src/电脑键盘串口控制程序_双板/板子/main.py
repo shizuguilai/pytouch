@@ -51,7 +51,6 @@ dtouch = 0b0000111111111111    #所有点击头抬起状态
 isRUN = False                      #定义程序运行控制全局变量
 
 TOBJ = Timer(-99)
-
 touchST = -1
 
 def runTimer(tim):
@@ -72,44 +71,91 @@ def func_A():
         if touchST != 1:
             TOBJ.deinit() 
             touchST = 1
-            TOBJ.init(period=200,mode=Timer.ONE_SHOT ,callback=runTimer)
+            TOBJ.init(period=150,mode=Timer.ONE_SHOT ,callback=runTimer)
         else:
             touchST = -1
             TOBJ.deinit()
     else:
         print('isRUN false A')
 
+TOBJ_B = Timer(-81)
+BLIST = [5,6,7,8]
+BIndex = 0
+def runTimerBup(tim):
+    global BIndex
+    unTouchPin(BLIST[BIndex])
+    BIndex += 1
+    if BIndex >= 4:
+        BIndex = 0
+    else:
+        tim.init(period=300,mode=Timer.ONE_SHOT ,callback=runTimerBDown)
+def runTimerBDown(tim):
+    touchPin(BLIST[BIndex])
+    tim.init(period=80,mode=Timer.ONE_SHOT ,callback=runTimerBup)
+
 def func_B():
-    global touchST,isRUN
+    global isRUN,BIndex
     if isRUN:
-        TOBJ.deinit() 
         print('isRUN B')
-        setAllPinStates(btouch)
-        time.sleep_ms(100)
-        setAllPinStates(allUntouch)
-        time.sleep_ms(200)
+        BIndex = 0
+        for i,v in enumerate(BLIST):
+            unTouchPin(v)
+        TOBJ_B.deinit()
+        TOBJ_B.init(period=1,mode=Timer.ONE_SHOT ,callback=runTimerBDown)
     else:
         print('isRUN false B')
 
+TOBJ_C = Timer(-82)
+CLIST = [9,10,11,12]
+CIndex = 0
+def runTimerCup(tim):
+    global CIndex
+    unTouchPin(CLIST[CIndex])
+    CIndex += 1
+    if CIndex >= 4:
+        CIndex = 0
+    else:
+        tim.init(period=300,mode=Timer.ONE_SHOT ,callback=runTimerCDown)
+def runTimerCDown(tim):
+    touchPin(CLIST[CIndex])
+    tim.init(period=80,mode=Timer.ONE_SHOT ,callback=runTimerCup)
+
 def func_C():
-    global touchST,isRUN
+    global isRUN,CIndex
     if isRUN:
         print('isRUN C')
-        setAllPinStates(ctouch)
-        time.sleep_ms(100)
-        setAllPinStates(allUntouch)
-        time.sleep_ms(200)
+        CIndex = 0
+        for i,v in enumerate(CLIST):
+            unTouchPin(v)
+        TOBJ_C.deinit()
+        TOBJ_C.init(period=1,mode=Timer.ONE_SHOT ,callback=runTimerCDown)
     else:
         print('isRUN false C')
 
+TOBJ_D = Timer(-83)
+DLIST = [13,14,15,16]
+DIndex = 0
+def runTimerDup(tim):
+    global DIndex
+    unTouchPin(DLIST[DIndex])
+    DIndex += 1
+    if DIndex >= 4:
+        DIndex = 0
+    else:
+        tim.init(period=300,mode=Timer.ONE_SHOT ,callback=runTimerDDown)
+def runTimerDDown(tim):
+    touchPin(DLIST[DIndex])
+    tim.init(period=80,mode=Timer.ONE_SHOT ,callback=runTimerDup)
+
 def func_D():
-    global touchST,isRUN
+    global isRUN,DIndex
     if isRUN:
         print('isRUN D')
-        setAllPinStates(dtouch)
-        time.sleep_ms(100)
-        setAllPinStates(allUntouch)
-        time.sleep_ms(200)
+        DIndex = 0
+        for i,v in enumerate(DLIST):
+            unTouchPin(v)
+        TOBJ_D.deinit()
+        TOBJ_D.init(period=1,mode=Timer.ONE_SHOT ,callback=runTimerDDown)
     else:
         print('isRUN false C')
 
@@ -131,8 +177,6 @@ def uartCheck():
         elif dat == 'D':#F4
             func_D()
         elif dat == 'E':#f5
-            # touchOncePin(5)
-            # func_f5()
             pass
         elif dat == 'F':#f6
             touchOncePin(6)

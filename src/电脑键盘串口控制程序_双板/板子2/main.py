@@ -43,76 +43,75 @@ def setAllPinStates(state):
 
 allUntouch = 0b1111111111111111    #所有点击头抬起状态
 
-atouch = 0b1111111111110000    #所有点击头抬起状态
-btouch = 0b1111111100001111    #所有点击头抬起状态
-ctouch = 0b1111000011111111    #所有点击头抬起状态
-dtouch = 0b0000111111111111    #所有点击头抬起状态
+dtouch =  0b1111111111000000    #所有点击头抬起状态
+ftouch =  0b1111111000111111    #所有点击头抬起状态
+gtouch =  0b1111000111111111    #所有点击头抬起状态
+
 
 isRUN = False                      #定义程序运行控制全局变量
 
-TOBJ = Timer(-99)
+sendST = allUntouch
 
-touchST = -1
+def touchState(st):
+    global sendST
+    sendST = sendST&st
+    setAllPinStates(sendST)
 
-def runTimer(tim):
-    global touchST
-    if touchST == 1:
-        setAllPinStates(atouch)
-        time.sleep_ms(80)
-        setAllPinStates(allUntouch)
-        tim.init(period=250,mode=Timer.ONE_SHOT ,callback=runTimer)
-    else:
-        setAllPinStates(allUntouch)
-        tim.deinit() 
+def untouchState(st):
+    global sendST
+    sendST = sendST|st
+    setAllPinStates(sendST)
 
-def func_A():
-    global touchST,isRUN
+def func_E():
+    global isRUN
     if isRUN:
-        print('isRUN A')
-        if touchST != 1:
-            TOBJ.deinit() 
-            touchST = 1
-            TOBJ.init(period=200,mode=Timer.ONE_SHOT ,callback=runTimer)
-        else:
-            touchST = -1
-            TOBJ.deinit()
+        print('isRUN D')
+        # setAllPinStates(dtouch)
+        touchState(dtouch)
     else:
-        print('isRUN false A')
-
-def func_B():
-    global touchST,isRUN
+        print('isRUN false B')
+def func_e():
+    global isRUN
     if isRUN:
-        TOBJ.deinit() 
-        print('isRUN B')
-        setAllPinStates(btouch)
-        time.sleep_ms(100)
-        setAllPinStates(allUntouch)
-        time.sleep_ms(200)
+        print('isRUN D')
+        # setAllPinStates(allUntouch)
+        untouchState(~dtouch)
     else:
         print('isRUN false B')
 
-def func_C():
-    global touchST,isRUN
+def func_F():
+    global isRUN
     if isRUN:
-        print('isRUN C')
-        setAllPinStates(ctouch)
-        time.sleep_ms(100)
-        setAllPinStates(allUntouch)
-        time.sleep_ms(200)
+        print('isRUN F')
+        # setAllPinStates(ftouch)
+        touchState(ftouch)
     else:
-        print('isRUN false C')
-
-def func_D():
-    global touchST,isRUN
+        print('isRUN false F')
+def func_f():
+    global isRUN
     if isRUN:
-        print('isRUN D')
-        setAllPinStates(dtouch)
-        time.sleep_ms(100)
-        setAllPinStates(allUntouch)
-        time.sleep_ms(200)
+        print('isRUN F')
+        # setAllPinStates(allUntouch)
+        untouchState(~ftouch)
     else:
-        print('isRUN false C')
+        print('isRUN false F')
 
+def func_G():
+    global isRUN
+    if isRUN:
+        print('isRUN G')
+        # setAllPinStates(gtouch)
+        touchState(gtouch)
+    else:
+        print('isRUN false G')
+def func_g():
+    global isRUN
+    if isRUN:
+        print('isRUN G')
+        # setAllPinStates(allUntouch)
+        untouchState(~gtouch)
+    else:
+        print('isRUN false G')
 def uartCheck():
     dat = uartUtil.reciveDat() #True表示每次只接收一个字节数据,只要有数据就一直接收,默认是False,接收一行数据,只有以换行符结束才会返回
     if dat: #接收到数据,dat将不为None
@@ -120,24 +119,20 @@ def uartCheck():
         dat = dat.decode().strip() #strip()是去掉字符串两边的空格
         print(len(dat),dat)
         if dat == 'A':#f1
-            # print('touch pin 1')
-            # touchOncePin(1)
-            func_A()
-        elif dat == 'B':#f2
-            # touchOncePin(2)
-            func_B()
-        elif dat == 'C':#f3
-            func_C()
-        elif dat == 'D':#F4
-            func_D()
-        elif dat == 'E':#f5
-            # touchOncePin(5)
-            # func_f5()
+            # func_A()
             pass
-        elif dat == 'F':#f6
-            touchOncePin(6)
-        elif dat == 'G':#f7
-            touchOncePin(7)
+        elif dat == 'E':#f2
+            func_E()
+        elif dat == 'F':#f3
+            func_F()
+        elif dat == 'G':#F4
+            func_G()
+        elif dat == 'e':#f2
+            func_e()
+        elif dat == 'f':#f3
+            func_f()
+        elif dat == 'g':#F4
+            func_g()
         elif dat == 'H':#f8
             touchOncePin(8)
         elif dat == 'I':#f9
