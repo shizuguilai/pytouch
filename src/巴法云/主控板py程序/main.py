@@ -103,8 +103,8 @@ def bfCallback(dat):
 def main():
     setAllPinStates(allUntouch)               #初始化所有点击头为抬起状态
     uid = '14712ccdbc88a59817d77c64ca2e4c33'  #巴法云uid,自行替换
-    ssid = 'woodcol24'                        #wifi名称,自行替换
-    password = '7668150Ww00'                #wifi密码,自行替换
+    ssid = 'wifi_name'                        #wifi名称,自行替换
+    password = 'password'                #wifi密码,自行替换
     BFUtil.connect_wifi(ssid,password)        #连接wifi,wifi只能是纯2.4G的,
     BFUtil.start(uid,bfCallback)              #设置巴法云的uid,并设置接收消息回调函数,同时启动巴法云
     while True:
