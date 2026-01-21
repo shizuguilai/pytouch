@@ -175,7 +175,18 @@ def main():
                 timobj.syncRemote() #同步网络时间,同时打印北京时间
             else:
                 time.sleep_ms(100) #等待100毫秒
-                machine.reset() #wifi连接断开,重启设备
+                wlan.connect(SSID,PASSWORD)
+                print("Connecting to WiFi...", end='')
+                connectcount = 30        #wifi连接超时时间30秒
+                while not wlan.isconnected():
+                    time.sleep(1)
+                    connectcount -= 1
+                    if connectcount <= 0:
+                        print("WiFi connection timeout")
+                        break
+                if wlan.isconnected():
+                    print("\nWiFi connected:", wlan.ifconfig())
+                    timobj.syncRemote() #同步网络时间,同时打印北京时间
 
     #这样获取到时间后,就可以结合出厂程序里的控制点击头的逻辑来用程序控制和时间有关的定时点击操作了
 if __name__ == '__main__':
