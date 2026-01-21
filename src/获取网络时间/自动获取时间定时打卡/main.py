@@ -117,6 +117,9 @@ def runDAKA():
     touchOncePin(3)      #J3点击一次,返回桌面
     time.sleep(5)       #延时5秒
 
+def initConfig():
+    pass
+
 def main():
     wlan = socketUtil.connect_wifi(SSID,PASSWORD)  #让板子连接wifi
     print("\nWiFi connected:", wlan.ifconfig())
@@ -134,9 +137,23 @@ def main():
             for i,dktstr in enumerate(dklist):
                 if dkdown != i:
                     dts = dktstr.split(":")
-                    dkh = int(dts[0])   #打卡小时
-                    dkm = int(dts[1])   #打卡分钟
-                    dks = int(dts[2])   #打卡秒
+                    dkh = 0             #打卡小时
+                    dkm = 0             #打卡分钟
+                    dks = 0             #打卡秒
+                    if len(dts) == 3:
+                        dkh = int(dts[0])   #打卡小时
+                        dkm = int(dts[1])   #打卡分钟
+                        dks = int(dts[2])   #打卡秒
+                    elif len(dts) == 2:
+                        dkh = int(dts[0])   #打卡小时
+                        dkm = int(dts[1])   #打卡分钟
+                        dks = 0             #打卡秒
+                    elif len(dts) == 1:
+                        dkh = int(dts[0])   #打卡小时
+                        dkm = 0             #打卡分钟
+                        dks = 0             #打卡秒
+                    else:
+                        print("daka time error")
                     dt = randint(0,randomtime)             #打卡在要求的时间提前随机5分钟内
                     nowtime = hour*3600+minute*60+second
                     dktime = dkh*3600+dkm*60+dks - dt
