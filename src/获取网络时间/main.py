@@ -28,8 +28,6 @@ from machine import RTC
 import time
 import ntptime
 
-
-
 #这个工具,当设备连上网络后,可以获取网络时间,并设置到RTC
 rtc = RTC() 
 #lib_time
@@ -79,18 +77,26 @@ class LibTime:
             bj_datetime[5]   # 秒
         )
         return formatted_time
-
-    #获取北京时间
+    #获取北京时间,返回数组形式[年,月,日,时,分,秒,星期几],星期几（数字，0-6，0代表星期一，6代表星期日）
+    def getBjTimeList(self):
+        # 获取当前时间([年, 月, 日, 时, 分, 秒, 毫秒, 微秒])，数组形式
+        utc_now = rtc.datetime()
+        # 转成时间戳
+        utc_time = time.mktime((utc_now[0], utc_now[1], utc_now[2], utc_now[4], utc_now[5], utc_now[6], 0, 0))
+        bj_time = utc_time + 8 * 3600
+        # 转成数组
+        bj_datetime = time.localtime(bj_time)
+        #年,月,日,时,分,秒,星期
+        return bj_datetime
+    #获取北京时间戳
     def getBjTimeStamp(self):
         # 获取当前时间([年, 月, 日, 时, 分, 秒, 毫秒, 微秒])，数组形式
         utc_now = rtc.datetime()
         # 转成时间戳
         utc_time = time.mktime((utc_now[0], utc_now[1], utc_now[2], utc_now[4], utc_now[5], utc_now[6], 0, 0))
         return utc_time + 8 * 3600
-
     #获取时间戳-格式 2025-02-18T22:00:00
-    def isNowAfterTime(self, time_str):
-        
+    def strTimeToStamp(self,time_str,isBJ = True):
         tmps = time_str.split("T")
         ytmp = tmps[0].split("-")
         year = int(ytmp[0])
@@ -107,14 +113,16 @@ class LibTime:
             second = int(htmps[2])
         else:
             return False
-        
         # 构造时间元组并转换 
         time_tuple = (year, month, day, hour, minute, second, 0, 0)
-
-        print("time_tag:",time_str)
-        print('time_now:',self.getBjTime())
-        
-        return time.mktime(time_tuple) < self.getBjTimeStamp()
+        outtime = time.mktime(time_tuple)
+        if isBJ:
+            outtime += 8 * 3600
+        return outtime
+    #获取时间戳-格式 2025-02-18T22:00:00
+    def isNowAfterTime(self, time_str,isBJ = True):
+        utctime = self.strTimeToStamp(time_str,isBJ)
+        return utctime < self.getBjTimeStamp()
 
     # 当前线程睡眠
     def sleep(self, s):
