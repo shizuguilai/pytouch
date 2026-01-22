@@ -77,24 +77,23 @@ def is_int(dat):
 
 isNoDaKa = False
 
+isTimerOK = False
+
 def DaKa(tim = None):
-    # 在这里写打卡逻辑
+    global isTimerOK
     if isNoDaKa:
         print("今天不用打卡")
         return
-    print("开始打卡")
-    touchOncePin(1)      #J1点击一次,打开app
-    time.sleep(10)       #延时10秒
-    touchOncePin(2)      #J2点击一次,打卡
-    time.sleep(10)       #延时10秒
-    touchOncePin(3)      #J3点击一次,返回桌面
-    time.sleep(5)       #延时5秒
+    if not isTimerOK:
+        isTimerOK = True
+    
 
 #上午上班打卡
 def SWfunc():
     # 在这里写打卡逻辑
     dt = randint(0,15*60)     #上午7:40~7:55随机延时,随机延时0~15分钟
-    time.sleep(dt)
+    # time.sleep(dt)
+    print('SWfunc:',dt)
     tim.init(period=dt,mode=Timer.ONE_SHOT ,callback=DaKa)
     #后边需要什么逻辑自己写就好
 
@@ -102,20 +101,23 @@ def SWfunc():
 def SWEndfunc():
     # 在这里写打卡逻辑
     dt = randint(0,5*60)     #上午11:30~11:35随机延时,随机延时0~5分钟
-    time.sleep(dt)
+    # time.sleep(dt)
+    print('SWEndfunc:',dt)
     tim.init(period=dt,mode=Timer.ONE_SHOT ,callback=DaKa)
     #后边需要什么逻辑自己写就好
 
 #下午上班打卡:12::~12:30随机延时,随机延时0~30分钟
 def XWFunc():
     dt = randint(0,30*60)     #下午12:00~12:30随机延时,随机延时0~30分钟
-    time.sleep(dt)
+    # time.sleep(dt)
+    print('XWFunc:',dt)
     tim.init(period=dt,mode=Timer.ONE_SHOT ,callback=DaKa)
 
 #下午下班打卡
 def XWEndFunc():
     dt = randint(0,2*60)     #下午17:00~17:02随机延时,随机延时0~2分钟
-    time.sleep(dt)
+    # time.sleep(dt)
+    print('delay:',dt)
     tim.init(period=dt,mode=Timer.ONE_SHOT ,callback=DaKa)
 
 #巴法云回调函数,收到巴法云发来的消息后会被调用
@@ -150,14 +152,25 @@ def bfCallback(dat):
 
 #主函数,点击器程序从这里开始运行
 def main():
+    global isTimerOK
     setAllPinStates(allUntouch)               #初始化所有点击头为抬起状态
-    uid = '631b095272262069fef9baaa6770a596'  #巴法云uid,自行替换
-    ssid = 'rg-wgao'                        #wifi名称,自行替换
-    password = '1111122222'                #wifi密码,自行替换
+    uid = '14712ccdbc88a59817d77c64ca2e4c33'  #巴法云uid,自行替换
+    ssid = 'woodcol24'                        #wifi名称,自行替换
+    password = '359028Ww00'                #wifi密码,自行替换
     BFUtil.connect_wifi(ssid,password)        #连接wifi,wifi只能是纯2.4G的,
     BFUtil.start(uid,bfCallback)              #设置巴法云的uid,并设置接收消息回调函数,同时启动巴法云
     while True:
-        time.sleep(1)                         #这里是死循环,延时1秒,可以写别的逻辑
-
+        # time.sleep(1)                         #这里是死循环,延时1秒,可以写别的逻辑
+        if isTimerOK:
+            print("开始打卡")
+            touchOncePin(1)      #J1点击一次,打开app
+            time.sleep(10)       #延时10秒
+            touchOncePin(2)      #J2点击一次,打卡
+            time.sleep(10)       #延时10秒
+            touchOncePin(3)      #J3点击一次,返回桌面
+            time.sleep(5)       #延时5秒
+            isTimerOK = False
+        else:
+            time.sleep_ms(100)
 if __name__ == '__main__':  
     main()
