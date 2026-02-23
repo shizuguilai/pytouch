@@ -52,7 +52,7 @@ def uartCheck():
         print('recive uart data:%s'%(dat.decode())) #decode是把字节流数据转成字符串格式
         #下边可以根接接收到的字符串数据编写对应的点击控制逻辑,我这里就不编写细节了
         dat = dat.decode().strip() #strip()是去掉字符串两边的空格
-        print(len(dat),dat)
+        print('Data length:', len(dat), 'Data content:', dat)
         if dat == '1':
             print('touch pin 1')
             touchOncePin(1)

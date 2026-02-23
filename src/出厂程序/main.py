@@ -93,8 +93,10 @@ def touchCmd(cmd):
         elif cmd == 'y':
             setAllPinStates(0xffff)
         elif tDMode[cmd][1] == 0:
+            print('touch pin:',tDMode[cmd][0])
             touchPin(tDMode[cmd][0])
         else:
+            print('unTouch pin:',tDMode[cmd][0])
             unTouchPin(tDMode[cmd][0])
     else:
         if cmd > '0' and cmd < 'h':
@@ -112,7 +114,7 @@ def uartCheck():
     if dat: #接收到数据,dat将不为None
         print('recive uart data:%s'%(dat.decode())) #decode是把字节流数据转成字符串格式
         dat = dat.decode().strip() #strip()是去掉字符串两边的空格
-        print(len(dat),dat)
+        print('Data length:', len(dat), ', Data content:', dat)
         if dat == '@':
             isSplitTouch = True
         elif dat == '!':
@@ -135,6 +137,7 @@ def main():
     global isRUN                     #引用全局变量isRUN
     setAllPinStates(allUntouch)      #初始化所有点击头为抬起状态
     while True:
+        # print("isRUN:", isRUN)
         tkey = tobj.key.value()      #检测物理按键是否被按下,当按键按下时tkey为0,否则为1
         if not tkey:
             isRUN = not isRUN        #程序运行状态取反
