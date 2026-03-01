@@ -59,7 +59,18 @@ def play_macro(config: dict, port: str = "COM5"):
 
     try:
         for idx, action in enumerate(actions, start=1):
-            pin = int(action["pin"])
+            # 允许在 actions 数组中插入“说明”/注释等非动作项：
+            # 比如 {"说明": "下面这个按钮是嘻嘻嘻"}，此类项将被直接忽略。
+            if "pin" not in action:
+                print(f"[{idx}/{len(actions)}] 跳过非动作项: {action}")
+                continue
+
+            try:
+                pin = int(action.get("pin"))
+            except (TypeError, ValueError):
+                print(f"[{idx}/{len(actions)}] 无法解析 pin，跳过该项: {action}")
+                continue
+
             interval = float(action.get("interval", 0.0))
 
             # 先还原“上一次按键到这一次按键之间”的时间间隔

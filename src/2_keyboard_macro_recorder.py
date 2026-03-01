@@ -48,6 +48,8 @@ class KeyboardMacroRecorder:
         self.recording: bool = False
         self.actions: List[Dict] = []
         self.last_action_time: Optional[float] = None
+        # 实时保存使用的目标文件路径（:start 时确定）
+        self.current_output_path: Optional[str] = None
 
         self._setup_serial()
 
@@ -62,11 +64,55 @@ class KeyboardMacroRecorder:
             sys.exit(1)
 
     # ---------------- 录制控制 ----------------
-    def start_recording(self):
+    def _ensure_output_path(self, filename: Optional[str] = None) -> str:
+        """
+        确保有一个可用的输出文件路径：
+        - 若显式传入 filename，则使用该路径；
+        - 否则若已有 current_output_path，则复用；
+        - 否则在 ./macros/ 下生成一个带时间戳的默认文件名。
+        """
+        if filename:
+            path = filename
+        elif self.current_output_path:
+            path = self.current_output_path
+        else:
+            macros_dir = os.path.join(os.getcwd(), "macros")
+            os.makedirs(macros_dir, exist_ok=True)
+            ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            path = os.path.join(macros_dir, f"macro_{ts}.json")
+
+        # 记录下来，后续实时保存直接复用
+        self.current_output_path = path
+        return path
+
+    def _write_config_to_file(self, path: str):
+        """将当前配置写入指定文件（实时保存也复用此函数）。"""
+        config = {
+            "fixed_delay": self.fixed_delay,
+            "random_delay": self.random_delay,
+            "actions": self.actions,
+        }
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        print(f"已保存宏配置到文件: {path}")
+
+    def start_recording(self, filename: Optional[str] = None):
+        """
+        开始录制：
+        - 清空已有动作
+        - 记录当前时间
+        - 立即创建/更新一个目标 JSON 文件，并在每次操作后实时覆盖保存
+
+        可以通过 ':start my_macro.json' 指定文件名；
+        不指定时，将自动生成 './macros/macro_时间戳.json'。
+        """
         self.recording = True
         self.actions.clear()
         self.last_action_time = time.time()
-        print("开始录制宏（已清空之前的录制）。")
+        path = self._ensure_output_path(filename)
+        # 立刻写入一个“空动作”的配置，方便你之后手动加注释
+        self._write_config_to_file(path)
+        print(f"开始录制宏（已清空之前的录制），实时保存到: {path}")
 
     def stop_recording(self):
         self.recording = False
@@ -78,23 +124,8 @@ class KeyboardMacroRecorder:
             print("当前没有任何录制动作，无法保存。")
             return
 
-        if not filename:
-            # 默认保存到 ./macros/ 目录，文件名带日期时间，避免覆盖
-            macros_dir = os.path.join(os.getcwd(), "macros")
-            os.makedirs(macros_dir, exist_ok=True)
-            ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = os.path.join(macros_dir, f"macro_{ts}.json")
-
-        config = {
-            "fixed_delay": self.fixed_delay,
-            "random_delay": self.random_delay,
-            "actions": self.actions,
-        }
-
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(config, f, ensure_ascii=False, indent=2)
-
-        print(f"已保存宏配置到文件: {filename}")
+        path = self._ensure_output_path(filename)
+        self._write_config_to_file(path)
 
     # ---------------- 输入处理 ----------------
     def _record_action(self, pin: int):
@@ -109,6 +140,11 @@ class KeyboardMacroRecorder:
         action = {"pin": pin, "interval": interval}
         self.actions.append(action)
         print(f"已录制动作: {action}")
+
+        # 若在录制状态下，实时保存到当前文件（start_recording 会确保路径存在）
+        if self.recording:
+            path = self._ensure_output_path()
+            self._write_config_to_file(path)
 
     def process_input(self, input_str: str):
         """处理一行用户输入"""
@@ -126,7 +162,9 @@ class KeyboardMacroRecorder:
             if cmd in ("q", "quit", "exit"):
                 self.stop()
             elif cmd in ("start", "record"):
-                self.start_recording()
+                # 允许 ':start 文件名' 自定义目标文件
+                filename = args[0] if args else None
+                self.start_recording(filename)
             elif cmd in ("stop",):
                 self.stop_recording()
             elif cmd in ("save",):
