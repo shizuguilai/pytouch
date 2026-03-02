@@ -480,24 +480,44 @@ class MacroControllerApp:
             label = step_label(action, i)
             self.tree.insert("", tk.END, iid=str(i), text=f"#{i + 1}", values=(label,), tags=("pending",))
 
-    def _update_step_states(self, current_index: int, total_done: int):
-        for item in self.tree.get_children():
-            i = int(item)
-            if i < current_index:
-                self.tree.item(item, tags=("done",))
-            elif i == current_index:
-                self.tree.item(item, tags=("current",))
-            else:
-                self.tree.item(item, tags=("pending",))
+    def _update_step_states(self, current_index: int, total_done: int, from_callback: bool = True):
+        """
+        更新步骤列表颜色与进度。
+        from_callback=True：current_index 表示「刚执行完」的那一步 -> 已执行=绿，下一步=黄。
+        from_callback=False：刚开始播放，current_index 表示「即将执行」的那一步 -> 当前=黄。
+        """
+        total = len(self.actions)
+        if from_callback:
+            # 回调时：刚执行完 current_index，下一步是 current_index+1
+            for item in self.tree.get_children():
+                i = int(item)
+                if i <= current_index:
+                    self.tree.item(item, tags=("done",))
+                elif i == current_index + 1:
+                    self.tree.item(item, tags=("current",))
+                else:
+                    self.tree.item(item, tags=("pending",))
+            next_step_1based = current_index + 2 if (current_index + 1 < total) else current_index + 1
+        else:
+            # 刚开始：即将执行 current_index
+            for item in self.tree.get_children():
+                i = int(item)
+                if i < current_index:
+                    self.tree.item(item, tags=("done",))
+                elif i == current_index:
+                    self.tree.item(item, tags=("current",))
+                else:
+                    self.tree.item(item, tags=("pending",))
+            next_step_1based = current_index + 1
         self.current_step_index = current_index
         self.total_done_count = total_done
-        total = len(self.actions)
-        step_one = current_index + 1
-        self.current_step_display_var.set(f"第 {step_one} / {total}")
-        self.progress_var.set(f"已执行 {total_done} 步，当前第 {step_one} / {total} 步")
-        # 滚动列表使当前行可见
+        self.current_step_display_var.set(f"第 {next_step_1based} / {total}")
+        self.progress_var.set(f"已执行 {total_done} 步，当前第 {next_step_1based} / {total} 步")
+        # 自动更新「从第几步开始」为当前/下一步，方便暂停后直接继续
+        self.start_step_var.set(str(next_step_1based))
         try:
-            self.tree.see(str(current_index))
+            row_to_show = current_index + 1 if (from_callback and current_index + 1 < total) else current_index
+            self.tree.see(str(row_to_show))
         except Exception:
             pass
 
@@ -515,6 +535,7 @@ class MacroControllerApp:
                 self.btn_pause.config(state=tk.NORMAL)
                 self.btn_stop.config(state=tk.NORMAL)
                 self.btn_manual.config(state=tk.DISABLED)
+                # 「从第几步开始」在 _update_step_states 里已按当前进度更新
             elif status == "paused":
                 self.btn_start.config(state=tk.NORMAL)
                 self.btn_pause.config(state=tk.DISABLED)
@@ -555,7 +576,7 @@ class MacroControllerApp:
         self.pause_event.clear()
         self.stop_event.clear()
         self.status_var.set("正在播放...")
-        self._update_step_states(start_index, self.total_done_count)
+        self._update_step_states(start_index, self.total_done_count, from_callback=False)
 
         def run():
             play_macro_worker(
