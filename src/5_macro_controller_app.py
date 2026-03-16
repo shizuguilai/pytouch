@@ -258,11 +258,14 @@ class MacroControllerApp:
         self.worker_status = "idle"
         self.dirty = False
 
-        # 新版 accounts 格式：账号列表与勾选状态
+        # 新版 accounts/global_actions 格式：公共步骤 + 账号列表与勾选状态
+        self.global_actions = []  # 顶层 global_actions（如“启动游戏”等）
         self.accounts = []  # [{"id", "name", "actions"}, ...]
         self.account_vars = {}  # id -> BooleanVar
         self.account_cb_frame = None  # 账号勾选区域，无 accounts 时隐藏
-        self._flat_to_account_map = []  # 扁平步骤下标 -> (accounts下标, 该账号内步骤下标)，用于编辑时写回 config
+        # 扁平步骤下标 -> (accounts下标, 该账号内步骤下标)，用于编辑时写回 config；
+        # 若为公共步骤，则记录为 (None, global_idx)
+        self._flat_to_account_map = []
 
         self._build_ui()
         self._step_queue = []
@@ -336,9 +339,16 @@ class MacroControllerApp:
         ttk.Label(self.root, textvariable=self.progress_var).pack(anchor=tk.W, padx=8, pady=0)
 
     def _rebuild_actions_from_accounts(self):
-        """根据当前账号勾选状态，将选中的账号 actions 合并为 self.actions，并刷新步骤列表。"""
+        """根据当前账号勾选状态，将公共步骤 + 选中的账号 actions 合并为 self.actions。"""
         self.actions = []
         self._flat_to_account_map = []
+
+        # 先放入公共步骤（如“启动游戏”），始终执行，不受账号勾选影响
+        for g_idx, a in enumerate(self.global_actions):
+            self.actions.append(a)
+            self._flat_to_account_map.append((None, g_idx))
+
+        # 再按勾选的账号顺序追加各账号步骤
         for acc_idx, acc in enumerate(self.accounts):
             vid = acc.get("id", acc_idx + 1)
             if not self.account_vars.get(vid, tk.BooleanVar(value=True)).get():
@@ -369,14 +379,17 @@ class MacroControllerApp:
             messagebox.showerror("错误", f"加载宏文件失败: {e}")
             return
 
-        # 清空账号勾选区
+        # 清空账号勾选区与缓存
         for w in (self.account_cb_frame.winfo_children() or []):
             w.destroy()
         self.account_vars.clear()
+        self.global_actions = []
         self.accounts = []
         self._flat_to_account_map = []
 
         if "accounts" in self.config and isinstance(self.config["accounts"], list):
+            # 新格式：可能带 global_actions + accounts
+            self.global_actions = list(self.config.get("global_actions", []))
             self.accounts = self.config["accounts"]
             # 为每个账号创建一个复选框，默认勾选
             for acc in self.accounts:
@@ -394,6 +407,7 @@ class MacroControllerApp:
             self._rebuild_actions_from_accounts()
         else:
             self.account_cb_frame.pack_forget()
+            self.global_actions = []
             self.actions = self.config.get("actions", [])
             n = len(self.actions)
             self._refresh_step_list()
@@ -477,11 +491,17 @@ class MacroControllerApp:
                     messagebox.showerror("错误", "请输入有效的数字", parent=dlg)
                     return
                 self.actions[index] = {"pin": pin, "interval": interval}
-            # 若为 accounts 格式，同步回 config 以便保存时一致
+            # 同步回 config 以便保存时一致（支持 global_actions + accounts）
             if self._flat_to_account_map and index < len(self._flat_to_account_map):
                 acc_idx, step_idx = self._flat_to_account_map[index]
-                if self.config and "accounts" in self.config and acc_idx < len(self.config["accounts"]):
-                    self.config["accounts"][acc_idx]["actions"][step_idx] = self.actions[index]
+                if self.config:
+                    if acc_idx is None:
+                        # 公共步骤
+                        if "global_actions" in self.config and 0 <= step_idx < len(self.config["global_actions"]):
+                            self.config["global_actions"][step_idx] = self.actions[index]
+                    elif "accounts" in self.config and 0 <= acc_idx < len(self.config["accounts"]):
+                        if 0 <= step_idx < len(self.config["accounts"][acc_idx]["actions"]):
+                            self.config["accounts"][acc_idx]["actions"][step_idx] = self.actions[index]
             self._refresh_step_list()
             self._set_dirty(True)
             dlg.destroy()

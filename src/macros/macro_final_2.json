@@ -1,18 +1,20 @@
 {
   "fixed_delay": 2,
   "random_delay": 3,
+  "global_actions": [
+    {
+      "说明": "启动游戏"
+    },
+    {
+      "pin": 5,
+      "interval": 3.2890937328338623
+    }
+  ],
   "accounts": [
     {
       "id": 1,
       "name": "账号1",
       "actions": [
-        {
-          "说明": "启动游戏"
-        },
-        {
-          "pin": 5,
-          "interval": 3.2890937328338623
-        },
         {
           "说明": "同意用户协议"
         },
