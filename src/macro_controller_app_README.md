@@ -56,3 +56,7 @@ python macro_controller_app.py
 
 - `1_keyboard_controller.py`：独立运行的键盘控制器（本应用已将其集成到「手动控制」窗口）。
 - `3_macro_player.py`：独立运行的宏播放脚本（本应用已集成可暂停、从指定步开始的播放逻辑）。
+
+
+## 终端输入下面这一行打印串口信息
+   python -c "import serial.tools.list_ports; ports = serial.tools.list_ports.comports(); [print(f'串口: {port.device} - {port.description}') for port in ports]"
