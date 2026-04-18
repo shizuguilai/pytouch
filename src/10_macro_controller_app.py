@@ -750,6 +750,7 @@ class DevicePanel:
                     self.current_step_display_var.set(f"第 {current_index + 1} / {total}（已停止）")
                     self.status_var.set("已停止")
                     self._update_header("已停止")
+                    self.root.after(100, self._open_manual_control)
                 else:
                     self.current_step_display_var.set("—")
                     self.status_var.set("发生错误，请检查串口")
