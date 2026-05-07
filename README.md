@@ -32,6 +32,32 @@ woodmage
 
 ## 电脑端python开发环境搭建
 
+### 依赖包说明（pip）
+
+在 PC 上跑 `src` 目录里的**串口宏控制 / 键盘控制**等脚本前，请先装好 Python（建议 **3.8～3.11**），并安装下列依赖。
+
+| 用途 | 包名（pip） | 说明 |
+|------|-------------|------|
+| **必选** | **pyserial** | 串口通信；`touch_board_base.py`、`comtest.py`、各版 `*_macro_controller_app.py` 等均依赖 `import serial` 里的 **`Serial`**。安装：`pip install pyserial`。 |
+| 标准库 | tkinter | 图形界面；Windows 下使用 python.org 安装包时一般需勾选 **tcl/tk**，否则会提示找不到 `_tkinter`。 |
+| 标准库 | 其他 | 如 `json`、`threading`、`socket` 等随 Python 自带，无需 pip。 |
+
+**常见误区：** PyPI 上还有一个同名包 **`serial`**（序列化/建模用），**不是**串口库。若误装该包，会出现「程序能启动，一点开始运行就失败」。请先 `pip uninstall serial`，再执行 **`pip install pyserial`**。
+
+**部分脚本的可选依赖**（仅在使用对应程序时再装）：
+
+| 脚本/目录 | pip 包 |
+|-----------|--------|
+| `src/6_adb_phone.py` | `Pillow`、`uiautomator2` |
+| `src/电脑键盘串口控制程序/pc/pc.py` 等 | `keyboard` |
+| `src/巴法云/每周重复设置工具/seting.py`、`httppost.py` | `requests` |
+
+宏控制常用依赖可一键安装：
+
+```bash
+pip install -r requirements.txt
+```
+
 我们这里使用当前最流行的开源IED开发工具vs code
 
 vs code下载地址:

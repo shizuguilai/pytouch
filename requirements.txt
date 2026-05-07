@@ -1,0 +1,5 @@
+# PC 端串口宏控制、touch_board_base、comtest 等必备
+# 安装：pip install -r requirements.txt
+#
+# 切勿安装 PyPI 上的同名包「serial」，请始终使用 pyserial。
+pyserial>=3.5
