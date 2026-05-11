@@ -1,5 +1,12 @@
 # PC 端串口宏控制、touch_board_base、comtest 等必备
 # 安装：pip install -r requirements.txt
 #
+# Python：与本仓库开发环境一致建议使用 3.11（当前机器检测为 3.11.9）。
+#
+# 11_macro_controller_app.py 依赖说明：
+#   - 标准库：json, os, sys, threading, time, random, tkinter（及其 ttk/filedialog/messagebox/scrolledtext）
+#   - 本地模块：touch_board_base（需 pyserial 提供 import serial）
+#   - 可选：serial.tools.list_ports（串口下拉枚举；同属 pyserial，未安装时列表为空）
+#
 # 切勿安装 PyPI 上的同名包「serial」，请始终使用 pyserial。
 pyserial>=3.5
